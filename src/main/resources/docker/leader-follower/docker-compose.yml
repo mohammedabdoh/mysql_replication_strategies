@@ -1,0 +1,61 @@
+version: '3.7'
+
+services:
+  mysql-leader:
+    image: mysql:latest
+    container_name: mysql-leader
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 33061:3306
+    volumes:
+      - ./mysql-leader/my.cnf:/etc/mysql/my.cnf
+      - ./mysql-leader/leader-setup.sql:/docker-entrypoint-initdb.d/leader-setup.sql
+      -  mysql-leader:/var/lib/mysql
+    networks:
+      - mysql-leader-network
+
+  mysql-follower-1:
+    image: mysql:latest
+    container_name: mysql-follower-1
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 33062:3306
+    volumes:
+      - ./follower-1/my.cnf:/etc/mysql/my.cnf
+      - ./follower-1/follower-1-setup.sql:/docker-entrypoint-initdb.d/follower-1-setup.sql
+      -  mysql-follower-1:/var/lib/mysql
+    networks:
+      - mysql-leader-network
+    depends_on:
+      - mysql-leader
+    profiles:
+      - manual
+
+  mysql-follower-2:
+    image: mysql:latest
+    container_name: mysql-follower-2
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 33063:3306
+    volumes:
+      - ./follower-2/my.cnf:/etc/mysql/my.cnf
+      - ./follower-2/follower-2-setup.sql:/docker-entrypoint-initdb.d/follower-2-setup.sql
+      -  mysql-follower-2:/var/lib/mysql
+    networks:
+      - mysql-leader-network
+    depends_on:
+      - mysql-leader
+    profiles:
+      - manual
+
+networks:
+  mysql-leader-network:
+    driver: bridge
+
+volumes:
+    mysql-leader:
+    mysql-follower-1:
+    mysql-follower-2:
